@@ -3,343 +3,212 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>每日打卡</title>
+<title>&#x6BCF;&#x65E5;&#x6253;&#x5361;</title>
 <style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(145deg,#fdf6ee,#f5ebe0);min-height:100vh;color:#3d2c2c;line-height:1.5;overflow-x:hidden;position:relative}
+.container{max-width:520px;margin:0 auto;padding:32px 20px 100px;position:relative;z-index:1}
 
-  *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-  body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue","PingFang SC","Microsoft YaHei",Arial,sans-serif; background:linear-gradient(145deg,#fdf6ee 0%,#f5ebe0 100%); min-height:100vh; color:#3d2c2c; line-height:1.5; overflow-x:hidden; position:relative; }
-  .bg-deco { position:fixed; pointer-events:none; z-index:0; border-radius:50%; opacity:0.10; }
-  .bg-deco-1 { width:200px;height:200px;background:radial-gradient(circle,#f0c0a0,transparent 70%);top:-40px;right:-60px;animation:floatA 8s ease-in-out infinite; }
-  .bg-deco-2 { width:140px;height:140px;background:radial-gradient(circle,#d4b8d8,transparent 70%);bottom:10%;left:-40px;animation:floatB 10s ease-in-out infinite; }
-  .bg-deco-3 { width:100px;height:100px;background:radial-gradient(circle,#f8d080,transparent 70%);top:40%;right:-20px;animation:floatA 12s ease-in-out infinite; }
-  .bg-deco-4 { width:80px;height:80px;background:radial-gradient(circle,#a8d4b8,transparent 70%);top:15%;left:10%;animation:floatB 9s ease-in-out infinite; }
-  .bg-deco-5 { width:60px;height:60px;background:radial-gradient(circle,#f0b8b8,transparent 70%);bottom:30%;right:15%;animation:floatA 7s ease-in-out infinite; }
-  @keyframes floatA { 0%,100% { transform:translate(0,0); } 50% { transform:translate(15px,-20px); } }
-  @keyframes floatB { 0%,100% { transform:translate(0,0); } 50% { transform:translate(-12px,18px); } }
-  .bg-dot { position:fixed; pointer-events:none; z-index:0; border-radius:50%; opacity:0.12; }
-  .bg-star { position:fixed; pointer-events:none; z-index:0; opacity:0.10; font-size:18px; }
-  .container { max-width:520px; margin:0 auto; padding:32px 20px 80px; position:relative; z-index:1; }
-  .header { text-align:center; margin-bottom:28px; }
-  .header .greeting { font-size:14px; color:#b29595; margin-bottom:2px; }
-  .header .title-row { display:flex; align-items:center; justify-content:center; gap:10px; }
-  .header h1 { font-size:26px; font-weight:700; letter-spacing:.5px; color:#4a3636; }
-  .header .date { font-size:14px; color:#9a7a7a; margin-top:2px; }
-  .header .summary { margin-top:16px; display:flex; justify-content:center; gap:32px; }
-  .header .summary-item { display:flex; flex-direction:column; align-items:center; }
-  .header .summary-item .num { font-size:26px; font-weight:700; color:#e8835a; }
-  .header .summary-item .label { font-size:12px; color:#b29595; margin-top:1px; }
-  .cal-toggle { display:inline-flex; align-items:center; gap:5px; background:#fff; border:none; border-radius:10px; padding:6px 14px; font-size:13px; color:#9a7a7a; cursor:pointer; transition:all .2s; margin-top:12px; box-shadow:0 1px 4px rgba(0,0,0,0.04); }
-  .cal-toggle:hover { color:#e8835a; box-shadow:0 2px 8px rgba(0,0,0,0.07); }
-  .cal-toggle svg { width:16px; height:16px; }
-  .cal-panel { background:#fff; border-radius:16px; padding:20px 20px 18px; margin-bottom:18px; box-shadow:0 2px 12px rgba(0,0,0,0.06); display:none; overflow:hidden; }
-  .cal-panel.open { display:block; }
-  .cal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
-  .cal-nav { display:flex; align-items:center; gap:12px; }
-  .cal-nav button { background:none; border:none; cursor:pointer; padding:4px; color:#b29595; font-size:18px; line-height:1; transition:color .2s; display:flex; align-items:center; justify-content:center; }
-  .cal-nav button:hover { color:#e8835a; }
-  .cal-nav .cal-month-label { font-size:16px; font-weight:600; color:#4a3636; min-width:100px; text-align:center; }
-  .cal-nav button svg { width:20px; height:20px; }
-  .cal-summary { font-size:13px; color:#b29595; }
-  .cal-summary .hl { color:#e8835a; font-weight:600; }
-  .cal-weekdays { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; margin-bottom:6px; text-align:center; }
-  .cal-weekdays span { font-size:12px; color:#b29595; padding:4px 0; }
-  .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
-  .cal-day { text-align:center; padding:6px 0; font-size:14px; color:#3d2c2c; border-radius:8px; position:relative; min-height:34px; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-  .cal-day.other { color:#ddd; }
-  .cal-day.today { font-weight:700; }
-  .cal-day .dot { display:block; width:6px; height:6px; border-radius:50%; margin-top:2px; }
-  .cal-day .dot.full { background:#e8835a; }
-  .cal-day .dot.partial { background:#f0c0a0; }
-  .progress-wrap { background:#fff; border-radius:14px; padding:6px 0; margin-bottom:18px; box-shadow:0 2px 10px rgba(0,0,0,0.04); }
-  .bar-track { width:100%; height:8px; background:#f0e8e0; border-radius:6px; overflow:hidden; }
-  .bar-fill { height:100%; background:linear-gradient(90deg,#e8835a,#f0a070); border-radius:6px; transition:width .5s ease; width:0%; }
-  .habit-card { background:#fff; border-radius:18px; padding:16px 20px; margin-bottom:12px; box-shadow:0 2px 12px rgba(0,0,0,0.04); display:flex; align-items:center; gap:14px; transition:box-shadow .2s, transform .15s, opacity .3s; cursor:pointer; position:relative; }
-  .habit-card:hover { box-shadow:0 4px 20px rgba(0,0,0,0.07); }
-  .habit-card:active { transform:scale(0.98); }
-  .habit-card.done { opacity:0.55; }
-  .habit-emoji { font-size:34px; line-height:1; width:46px; text-align:center; flex-shrink:0; }
-  .habit-info { flex:1; min-width:0; }
-  .habit-info .name { font-size:17px; font-weight:600; color:#3d2c2c; transition:color .2s; }
-  .habit-card.done .habit-info .name { color:#b29595; text-decoration:line-through; }
-  .habit-info .streak { font-size:13px; color:#b29595; margin-top:2px; }
-  .habit-info .streak .highlight { font-weight:700; color:#e8835a; }
-  .habit-info .streak .best { color:#d4a030; font-weight:600; }
-  .check-btn { width:48px; height:48px; border-radius:50%; border:2.5px solid #e8ddd0; background:#fcf9f6; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:all .25s; font-size:22px; color:transparent; padding:0; position:relative; z-index:2; }
-  .check-btn:active { transform:scale(0.88); }
-  .check-btn.done { border-color:#e8835a; background:#e8835a; color:#fff; box-shadow:0 3px 12px rgba(232,131,90,0.3); }
-  .check-btn .check-icon { transition:transform .3s ease; }
-  .check-btn.done .check-icon { transform:scale(1); }
-  .delete-btn { width:30px; height:30px; border-radius:50%; border:none; background:transparent; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:15px; color:#d4bcbc; transition:all .2s; opacity:0; padding:0; position:relative; z-index:2; }
-  .habit-card:hover .delete-btn { opacity:1; }
-  .delete-btn:hover { background:#f5ecec; color:#c48787; }
-  .month-stats { background:#fff; border-radius:14px; padding:16px 20px; margin-top:18px; box-shadow:0 2px 10px rgba(0,0,0,0.04); display:flex; justify-content:center; gap:36px; }
-  .month-stats .stat-item { display:flex; flex-direction:column; align-items:center; }
-  .month-stats .stat-item .num { font-size:20px; font-weight:700; color:#e8835a; }
-  .month-stats .stat-item .label { font-size:12px; color:#b29595; margin-top:1px; }
-  .quote-box { background:#fff; border-radius:14px; padding:16px 22px; margin:18px 0 16px; box-shadow:0 2px 10px rgba(0,0,0,0.04); text-align:center; border-left:4px solid #e8835a; }
-  .quote-box .qt { font-size:15px; color:#7a5a5a; font-style:italic; line-height:1.6; }
-  .add-area { margin-top:16px; display:flex; gap:10px; }
-  .add-area input { flex:1; border:2px solid #e8ddd0; border-radius:14px; padding:12px 16px; font-size:15px; outline:none; background:#fff; color:#3d2c2c; transition:border-color .2s; }
-  .add-area input::placeholder { color:#cbb5b5; }
-  .add-area input:focus { border-color:#e8835a; }
-  .add-area button { width:48px; height:48px; border-radius:14px; border:none; background:#e8835a; color:#fff; font-size:26px; font-weight:300; cursor:pointer; flex-shrink:0; transition:background .2s, transform .15s; display:flex; align-items:center; justify-content:center; line-height:1; }
-  .add-area button:hover { background:#d9744e; }
-  .add-area button:active { transform:scale(0.95); }
-  .empty-state { text-align:center; padding:50px 20px; color:#b29595; }
-  .empty-state .icon { font-size:52px; margin-bottom:12px; }
-  .empty-state p { font-size:15px; }
-  .toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(80px); background:#3d2c2c; color:#fdf6ee; padding:10px 22px; border-radius:12px; font-size:14px; opacity:0; transition:all .35s ease; pointer-events:none; white-space:nowrap; z-index:10; }
-  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
-  .confetti-container { position:fixed; top:0; left:0; right:0; bottom:0; pointer-events:none; z-index:100; overflow:hidden; }
-  .confetti-piece { position:absolute; width:8px; height:8px; border-radius:2px; animation:confettiFall linear forwards; }
-  @keyframes confettiFall { 0% { opacity:1; transform:translateY(-10px) rotate(0deg); } 100% { opacity:0; transform:translateY(100vh) rotate(720deg); } }
-  .mp { position:fixed; bottom:0; left:0; right:0; z-index:20; background:#fff; box-shadow:0 -2px 12px rgba(0,0,0,0.06); padding:6px 14px; display:none; align-items:center; gap:8px; }
-  .mp.show { display:flex; }
-  .mp-btn { width:36px; height:36px; border:none; border-radius:50%; background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#b29595; transition:all .2s; flex-shrink:0; font-size:16px; padding:0; }
-  .mp-btn:hover { background:#f5f0ea; color:#e8835a; }
-  .mp-btn.play { color:#e8835a; background:#fdf6ee; }
-  .mp-progress { flex:1; height:4px; -webkit-appearance:none; appearance:none; background:#f0e8e0; border-radius:2px; outline:none; cursor:pointer; min-width:0; }
-  .mp-progress::-webkit-slider-thumb { -webkit-appearance:none; width:14px; height:14px; border-radius:50%; background:#e8835a; border:none; cursor:pointer; }
-  .mp-time { font-size:11px; color:#b29595; white-space:nowrap; flex-shrink:0; min-width:70px; text-align:center; }
-  .mp-label { font-size:11px; color:#b29595; white-space:nowrap; flex-shrink:0; min-width:20px; text-align:center; }
-  .mp-open { position:fixed; bottom:10px; right:14px; z-index:21; width:42px; height:42px; border-radius:50%; border:none; background:#fff; box-shadow:0 2px 10px rgba(0,0,0,0.08); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:18px; transition:all .25s; padding:0; color:#b29595; }
-  .mp-open.playing { color:#e8835a; box-shadow:0 3px 14px rgba(232,131,90,0.2); }
-  .mp-open:active { transform:scale(0.92); }
-  @media (max-width:420px) { .container { padding:24px 16px 60px; } .header h1 { font-size:22px; } .habit-card { padding:14px 16px; } .check-btn { width:44px; height:44px; font-size:20px; } .habit-emoji { font-size:30px; width:40px; } .habit-info .name { font-size:15px; } .delete-btn { opacity:1; } .month-stats { gap:24px; } .cal-panel { padding:16px 14px 14px; } }
+.header{text-align:center;margin-bottom:28px}
+.header .greeting{font-size:14px;color:#b29595;margin-bottom:2px}
+.header h1{font-size:26px;font-weight:700;letter-spacing:.5px;color:#4a3636}
+.header .date{font-size:14px;color:#9a7a7a;margin-top:2px}
+.summary{margin-top:16px;display:flex;justify-content:center;gap:32px}
+.summary-item{display:flex;flex-direction:column;align-items:center}
+.summary-item .num{font-size:26px;font-weight:700;color:#e8835a}
+.summary-item .label{font-size:12px;color:#b29595;margin-top:1px}
+
+.progress-wrap{background:#fff;border-radius:14px;padding:6px 0;margin-bottom:18px;box-shadow:0 2px 10px rgba(0,0,0,.04)}
+.bar-track{width:100%;height:8px;background:#f0e8e0;border-radius:6px;overflow:hidden}
+.bar-fill{height:100%;background:linear-gradient(90deg,#e8835a,#f0a070);border-radius:6px;transition:width .5s ease;width:0%}
+
+.cal-toggle{display:inline-flex;align-items:center;gap:5px;background:#fff;border:none;border-radius:10px;padding:6px 14px;font-size:13px;color:#9a7a7a;cursor:pointer;transition:all .2s;margin-top:12px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.cal-toggle:hover{color:#e8835a}
+.cal-toggle svg{width:16px;height:16px}
+
+.cal-panel{background:#fff;border-radius:16px;padding:20px;margin-bottom:18px;box-shadow:0 2px 12px rgba(0,0,0,.06);display:none}
+.cal-panel.open{display:block}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cal-nav{display:flex;align-items:center;gap:12px}
+.cal-nav button{background:none;border:none;cursor:pointer;padding:4px;color:#b29595;font-size:18px;line-height:1;transition:color .2s;display:flex}
+.cal-nav button:hover{color:#e8835a}
+.cal-nav .cal-month-label{font-size:16px;font-weight:600;color:#4a3636;min-width:100px;text-align:center}
+.cal-nav button svg{width:20px;height:20px}
+.cal-summary{font-size:13px;color:#b29595}
+.cal-summary .hl{color:#e8835a;font-weight:600}
+.cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:6px;text-align:center}
+.cal-weekdays span{font-size:12px;color:#b29595;padding:4px 0}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-day{text-align:center;padding:6px 0;font-size:14px;color:#3d2c2c;border-radius:8px;position:relative;min-height:34px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.cal-day.other{color:#ddd}
+.cal-day.today{font-weight:700}
+.cal-day .dot{display:block;width:6px;height:6px;border-radius:50%;margin-top:2px}
+.cal-day .dot.on{background:#e8835a}
+
+.habit-list{display:flex;flex-direction:column;gap:10px;margin-bottom:18px}
+.habit-card{background:#fff;border-radius:18px;padding:16px 20px;box-shadow:0 2px 12px rgba(0,0,0,.04);display:flex;align-items:center;gap:14px;cursor:pointer;transition:opacity .3s,transform .15s}
+.habit-card:active{transform:scale(.98)}
+.habit-card.done{opacity:.55}
+.habit-emoji{font-size:34px;line-height:1;width:46px;text-align:center;flex-shrink:0}
+.habit-info{flex:1;min-width:0}
+.habit-info .name{font-size:17px;font-weight:600;color:#3d2c2c}
+.habit-card.done .habit-info .name{color:#b29595;text-decoration:line-through}
+.habit-info .streak{font-size:13px;color:#b29595;margin-top:2px}
+.habit-info .streak .hl{font-weight:700;color:#e8835a}
+.check-btn{width:48px;height:48px;border-radius:50%;border:2.5px solid #e8ddd0;background:#fcf9f6;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .25s;font-size:22px;color:transparent;padding:0;position:relative;z-index:2}
+.check-btn:active{transform:scale(.88)}
+.check-btn.done{border-color:#e8835a;background:#e8835a;color:#fff;box-shadow:0 3px 12px rgba(232,131,90,.3)}
+
+.quote-box{background:#fff;border-radius:14px;padding:16px 22px;margin:18px 0;box-shadow:0 2px 10px rgba(0,0,0,.04);text-align:center;border-left:4px solid #e8835a}
+.quote-box .qt{font-size:15px;color:#7a5a5a;font-style:italic;line-height:1.6}
+
+.month-stats{background:#fff;border-radius:14px;padding:16px 20px;margin-bottom:18px;box-shadow:0 2px 10px rgba(0,0,0,.04);display:flex;justify-content:center;gap:36px}
+.month-stats .stat-item{display:flex;flex-direction:column;align-items:center}
+.month-stats .stat-item .num{font-size:20px;font-weight:700;color:#e8835a}
+.month-stats .stat-item .label{font-size:12px;color:#b29595;margin-top:1px}
+
+.add-area{display:flex;gap:10px}
+.add-area input{flex:1;border:2px solid #e8ddd0;border-radius:14px;padding:12px 16px;font-size:15px;outline:none;background:#fff;color:#3d2c2c;transition:border-color .2s}
+.add-area input:focus{border-color:#e8835a}
+.add-area button{width:48px;height:48px;border-radius:14px;border:none;background:#e8835a;color:#fff;font-size:26px;font-weight:300;cursor:pointer;flex-shrink:0;transition:background .2s;display:flex;align-items:center;justify-content:center;line-height:1}
+.add-area button:hover{background:#d9744e}
+
+.empty-state{text-align:center;padding:50px 20px;color:#b29595}
+.empty-state .icon{font-size:52px;margin-bottom:12px}
+.empty-state p{font-size:15px}
+
+.music-btn{position:fixed;bottom:24px;right:24px;z-index:20;width:48px;height:48px;border-radius:50%;border:none;background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.08);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:20px;transition:all .25s;padding:0;color:#b29595}
+.music-btn:hover{box-shadow:0 4px 16px rgba(0,0,0,.12)}
+.music-btn.playing{color:#e8835a;box-shadow:0 3px 14px rgba(232,131,90,.2)}
+.music-btn:active{transform:scale(.92)}
+
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:#3d2c2c;color:#fdf6ee;padding:10px 22px;border-radius:12px;font-size:14px;opacity:0;transition:all .35s ease;pointer-events:none;white-space:nowrap;z-index:10}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media(max-width:420px){.container{padding:24px 16px 90px}.header h1{font-size:22px}.habit-card{padding:14px 16px}.check-btn{width:44px;height:44px;font-size:20px}.habit-emoji{font-size:30px;width:40px}.habit-info .name{font-size:15px}.month-stats{gap:24px}.cal-panel{padding:16px}}
 </style>
 </head>
 <body>
 
-<div class="bg-deco bg-deco-1"></div>
-<div class="bg-deco bg-deco-2"></div>
-<div class="bg-deco bg-deco-3"></div>
-<div class="bg-deco bg-deco-4"></div>
-<div class="bg-deco bg-deco-5"></div>
 <div class="container">
 <div class="header">
 <div class="greeting" id="greetingDisplay"></div>
-<div class="title-row"><h1>📋 每日打卡</h1></div>
+<h1>&#x1F4CB; &#x6BCF;&#x65E5;&#x6253;&#x5361;</h1>
 <div class="date" id="dateDisplay"></div>
 <div class="summary">
-<div class="summary-item"><span class="num" id="doneCount">0</span><span class="label">已完成</span></div>
-<div class="summary-item"><span class="num" id="totalCount">0</span><span class="label">总习惯</span></div>
+<div class="summary-item"><span class="num" id="doneCount">0</span><span class="label">&#x5DF2;&#x5B8C;&#x6210;</span></div>
+<div class="summary-item"><span class="num" id="totalCount">0</span><span class="label">&#x603B;&#x4E60;&#x60EF;</span></div>
 </div>
-<button class="cal-toggle" id="calToggleBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> 打卡日历</button>
+<button class="cal-toggle" id="calToggleBtn">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+&#x6253;&#x5361;&#x65E5;&#x5386;
+</button>
 </div>
+
 <div class="cal-panel" id="calPanel">
-<div class="cal-header"><div class="cal-nav"><button id="calPrev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button><span class="cal-month-label" id="calMonthLabel"></span><button id="calNext"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button></div><div class="cal-summary" id="calSummary"></div></div>
-<div class="cal-weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+<div class="cal-header">
+<div class="cal-nav">
+<button id="calPrev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+<span class="cal-month-label" id="calMonthLabel"></span>
+<button id="calNext"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+</div>
+<div class="cal-summary" id="calSummary"></div>
+</div>
+<div class="cal-weekdays"><span>&#x65E5;</span><span>&#x4E00;</span><span>&#x4E8C;</span><span>&#x4E09;</span><span>&#x56DB;</span><span>&#x4E94;</span><span>&#x516D;</span></div>
 <div class="cal-grid" id="calGrid"></div>
 </div>
+
 <div class="progress-wrap"><div class="bar-track"><div class="bar-fill" id="progressFill"></div></div></div>
+
 <div id="habitList"></div>
-<div class="month-stats" id="monthStats">
-<div class="stat-item"><span class="num" id="monthDays">0</span><span class="label">本月打卡</span></div>
-<div class="stat-item"><span class="num" id="bestStreak">0</span><span class="label">最长连续</span></div>
-<div class="stat-item"><span class="num" id="totalChecked">0</span><span class="label">累计完成</span></div>
-</div>
+
 <div class="quote-box"><div class="qt" id="quoteDisplay"></div></div>
+
+<div class="month-stats">
+<div class="stat-item"><span class="num" id="monthDays">0</span><span class="label">&#x672C;&#x6708;&#x6253;&#x5361;</span></div>
+<div class="stat-item"><span class="num" id="bestStreak">0</span><span class="label">&#x6700;&#x957F;&#x8FDE;&#x7EED;</span></div>
+<div class="stat-item"><span class="num" id="totalChecked">0</span><span class="label">&#x7D2F;&#x8BA1;&#x5B8C;&#x6210;</span></div>
+</div>
+
 <div class="add-area">
-<input id="habitInput" type="text" placeholder="添加新习惯…" maxlength="20" autocomplete="off">
-<button id="addBtn" title="添加">+</button>
+<input id="habitInput" type="text" placeholder="&#x6DFB;&#x52A0;&#x65B0;&#x4E60;&#x60EF;&#x2026;" maxlength="20" autocomplete="off">
+<button id="addBtn">+</button>
 </div>
 </div>
-<div class="mp" id="mp">
-<button class="mp-btn" id="mpPrev">◀◀</button>
-<button class="mp-btn play" id="mpPlay">▶</button>
-<button class="mp-btn" id="mpNext">▶▶</button>
-<input type="range" class="mp-progress" id="mpProgress" value="0" min="0" max="1000">
-<span class="mp-time" id="mpTime">0:00 / 0:00</span>
-<span class="mp-label" id="mpLabel">1/2</span>
-</div>
-<button class="mp-open" id="mpOpen">🎵</button>
+
+<button class="music-btn" id="musicBtn">&#x1F3B5;</button>
 <audio id="bgAudio" loop preload="none"><source src="background.mp3" type="audio/mpeg"></audio>
 <div class="toast" id="toast"></div>
-<script>
 
+<script>
 (function(){
-var SK = 'daily_habits_data';
+var SK='daily_habits_data';
 function tk(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function mk(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
 function ld(){try{var r=localStorage.getItem(SK);if(r)return JSON.parse(r)}catch(e){}return{habits:[]}}
 function sv(){localStorage.setItem(SK,JSON.stringify(st))}
 var st=ld();
-var QS=[
-'\u575A\u6301\u4E0D\u662F\u4E00\u6B21\u8F70\u8F70\u70C8\u70C8\u7684\u884C\u52A8\uFF0C\u800C\u662F\u6BCF\u5929\u91CD\u590D\u7684\u5C0F\u4E8B \uD83D\uDC22',
-'\u4ECA\u5929\u7684\u4F60\uFF0C\u6BD4\u6628\u5929\u591A\u4E86\u4E00\u70B9\u70B9 \u2728',
-'\u4E0D\u79EF\u8DEC\u6B65\uFF0C\u65E0\u4EE5\u81F3\u5343\u91CC \uD83D\uDEB6',
-'\u81EA\u5F8B\u5373\u81EA\u7531 \uD83D\uDD4A\uFE0F',
-'\u5C0F\u5C0F\u575A\u6301\uFF0C\u5927\u5927\u6539\u53D8 \uD83C\uDF1F',
-'\u6BCF\u4E00\u6B65\u90FD\u7B97\u6570 \uD83D\uDEB6',
-'\u4E0D\u8981\u7B49\u5F85\u5B8C\u7F8E\u7684\u65F6\u673A\uFF0C\u5C31\u4ECE\u4ECA\u5929\u5F00\u59CB \uD83C\uDF31',
-'\u4ECA\u5929\u7684\u52AA\u529B\u662F\u660E\u5929\u7684\u793C\u7269 \uD83C\uDF81',
-'\u505A\u96BE\u4E8B\u5FC5\u6709\u6240\u5F97 \uD83C\uDFAF',
-'\u6C34\u6EF4\u77F3\u7A7F\uFF0C\u4E0D\u662F\u529B\u91CF\u5927\uFF0C\u800C\u662F\u529F\u592B\u6DF1 \uD83D\uDCA7',
-'\u751F\u547D\u5FC5\u987B\u6709\u88C2\u7F1D\uFF0C\u9633\u5149\u624D\u80FD\u7167\u8FDB\u6765 \uD83C\uDF04',
-'\u5929\u884C\u5065\uFF0C\u541B\u5B50\u4EE5\u81EA\u5F3A\u4E0D\u606F \u2600\uFE0F',
-'\u957F\u98CE\u7834\u6D6A\u4F1A\u6709\u65F6\uFF0C\u76F4\u6302\u4E91\u5E06\u6D4E\u6CA7\u6D77 \u26F5',
-'\u5B9D\u5251\u950B\u4ECE\u78E8\u783A\u51FA\uFF0C\u6885\u82B1\u9999\u81EA\u82E6\u5BD2\u6765 \uD83C\uDF3A',
-'\u4E0D\u7ECF\u4E00\u756A\u5BD2\u5F7B\u9AA8\uFF0C\u600E\u5F97\u6885\u82B1\u6251\u9F3B\u9999 \uD83C\uDF3F',
-'\u950F\u800C\u4E0D\u820D\uFF0C\u91D1\u77F3\u53EF\u94F8 \uD83E\uDEA8',
-'\u5FD7\u4E4B\u6240\u8D8B\uFF0C\u65E0\u8FDC\u8303\u5C4A\uFF1B\u7A77\u5C71\u8DDD\u6D77\uFF0C\u4E0D\u80FD\u9650\u4E5F \uD83C\uDF0A',
-'\u65E5\u65E5\u884C\uFF0C\u4E0D\u6015\u5343\u4E07\u91CC\uFF1B\u5E38\u5E38\u505A\uFF0C\u4E0D\u6015\u5343\u4E07\u4E8B \uD83D\uDCC5',
-'\u535A\u89C2\u800C\u7EA6\u53D6\uFF0C\u539A\u79EF\u800C\u8584\u53D1 \uD83D\uDCDA',
-'\u79CD\u4E00\u68F5\u6811\u6700\u597D\u7684\u65F6\u95F4\u662F\u5341\u5E74\u524D\uFF0C\u5176\u6B21\u662F\u73B0\u5728 \uD83C\uDF33',
-'\u9053\u963B\u4E14\u957F\uFF0C\u884C\u5219\u5C06\u81F3 \uD83C\uDF04',
-];
 
-var WEEKDAYS=['\u65E5','\u4E00','\u4E8C','\u4E09','\u56DB','\u4E94','\u516D'];
-var HABIT_STYLES=[
-{k:['\u559D\u6C34','\u6C34','\u996E','water'],e:'\uD83D\uDCA7'},
-{k:['\u559D\u8336','\u8336','tea'],e:'\uD83C\uDF75'},
-{k:['\u8FD0\u52A8','\u8DD1\u6B65','\u8DD1','run'],e:'\uD83C\uDFC3'},
-{k:['\u5065\u8EAB','gym','workout'],e:'\uD83D\uDCAA'},
-{k:['\u8BFB\u4E66','\u9605\u8BFB','\u770B\u4E66','book','read'],e:'\uD83D\uDCD6'},
-{k:['\u5B66\u4E60','\u5B66','study'],e:'\uD83D\uDCDA'},
-{k:['\u82F1\u8BED','\u5355\u8BCD','english'],e:'\uD83D\uDD24'},
-{k:['\u5199\u4F5C','\u5199','\u65E5\u8BB0','write'],e:'\u270D\uFE0F'},
-{k:['\u73A9\u6E38\u620F','\u6E38\u620F','\u6253\u6E38\u620F','game'],e:'\uD83C\uDFAE'},
-{k:['\u770B\u7535\u89C6\u5267','\u8FFD\u5267','\u7535\u89C6\u5267','\u5267'],e:'\uD83D\uDCFA'},
-{k:['\u770B\u7535\u5F71','\u7535\u5F71','movie'],e:'\uD83C\uDFAC'},
-{k:['\u542C\u97F3\u4E50','\u97F3\u4E50','music'],e:'\uD83C\uDFB5'},
-{k:['\u64AD\u5BA2','podcast'],e:'\uD83C\uDFA7'},
-{k:['\u5191\u60F3'],e:'\uD83E\uDDD8'},
-{k:['\u65E9\u8D77','\u8D77\u5E8A'],e:'\uD83C\uDF05'},
-{k:['\u65E9\u7761','\u7761\u89C9','\u7761','sleep'],e:'\uD83C\uDF19'},
-{k:['\u7F16\u7A0B','code','coding'],e:'\uD83D\uDCBB'},
-{k:['\u753B\u753B','\u7ED8\u753B','\u753B','draw','art'],e:'\uD83C\uDFA8'},
-{k:['\u505A\u996D','\u70F9\u996A','cook','cooking'],e:'\uD83C\uDF73'},
-{k:['\u62C9\u4F38','stretch'],e:'\uD83E\uDDB8'},
-{k:['\u6C34\u679C','fruit'],e:'\uD83C\uDF4E'},
-{k:['\u6563\u6B65','walk','\u8D70\u8D70'],e:'\uD83D\uDEB6'},
-{k:['\u641C\u72D7','\u72D7','dog'],e:'\uD83D\uDC15'},
-{k:['\u6574\u7406','\u6536\u7EB3','clean'],e:'\uD83E\uDDF9'},
-{k:['\u8BB0\u8D26','budget'],e:'\uD83E\uDDFE'},
-{k:['\u8DF3\u821E','\u821E\u8E48','dance'],e:'\uD83D\uDC83'},
-];
+var QS='&#x575A;&#x6301;&#x4E0D;&#x662F;&#x4E00;&#x6B21;&#x8F70;&#x8F70;&#x70C8;&#x70C8;&#x7684;&#x884C;&#x52A8;&#xFF0C;&#x800C;&#x662F;&#x6BCF;&#x5929;&#x91CD;&#x590D;&#x7684;&#x5C0F;&#x4E8B;|&#x4ECA;&#x5929;&#x7684;&#x4F60;&#xFF0C;&#x6BD4;&#x6628;&#x5929;&#x591A;&#x4E86;&#x4E00;&#x70B9;&#x70B9;|&#x4E0D;&#x79EF;&#x8DEC;&#x6B65;&#xFF0C;&#x65E0;&#x4EE5;&#x81F3;&#x5343;&#x91CC;|&#x81EA;&#x5F8B;&#x5373;&#x81EA;&#x7531;|&#x5C0F;&#x5C0F;&#x575A;&#x6301;&#xFF0C;&#x5927;&#x5927;&#x6539;&#x53D8;|&#x751F;&#x547D;&#x5FC5;&#x987B;&#x6709;&#x88C2;&#x7F1D;&#xFF0C;&#x9633;&#x5149;&#x624D;&#x80FD;&#x7167;&#x8FDB;&#x6765;|&#x4E0D;&#x7ECF;&#x4E00;&#x756A;&#x5BD2;&#x5F7B;&#x9AA8;&#xFF0C;&#x600E;&#x5F97;&#x6885;&#x82B1;&#x6251;&#x9F3B;&#x9999;|&#x950F;&#x800C;&#x4E0D;&#x820D;&#xFF0C;&#x91D1;&#x77F3;&#x53EF;&#x94F8;|&#x4F60;&#x662F;&#x6700;&#x68D2;&#x7684;&#xFF01;|&#x79CD;&#x4E00;&#x68F5;&#x6811;&#x6700;&#x597D;&#x7684;&#x65F6;&#x95F4;&#x662F;&#x5341;&#x5E74;&#x524D;&#xFF0C;&#x5176;&#x6B21;&#x662F;&#x73B0;&#x5728;|&#x9053;&#x963B;&#x4E14;&#x957F;&#xFF0C;&#x884C;&#x5219;&#x5C06;&#x81F3;|&#x5B66;&#x5982;&#x9006;&#x6C34;&#x884C;&#x821F;&#xFF0C;&#x4E0D;&#x8FDB;&#x5219;&#x9000;|&#x4EBA;&#x751F;&#x5728;&#x52E4;&#xFF0C;&#x4E0D;&#x7D22;&#x4F55;&#x83B7;|&#x4F60;&#x6BD4;&#x4F60;&#x60F3;&#x8C61;&#x7684;&#x66F4;&#x5F3A;&#x5927;'.split('|');
+function getQ(){return QS[Math.floor(Math.random()*QS.length)]}
 
-function gs(n){var N=n.toLowerCase();for(var i=0;i<HABIT_STYLES.length;i++){for(var j=0;j<HABIT_STYLES[i].k.length;j++){if(N.indexOf(HABIT_STYLES[i].k[j].toLowerCase())!==-1)return HABIT_STYLES[i].e}}return'\u2B50'}
+var WD=['&#x65E5;','&#x4E00;','&#x4E8C;','&#x4E09;','&#x56DB;','&#x4E94;','&#x516D;'];
 
-function ch(history){var s=0;var d=new Date();while(true){var k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');if(history[k]){s++;d.setDate(d.getDate()-1)}else break}return s}
-function bh(history){if(!history||Object.keys(history).length===0)return 0;var days=Object.keys(history).sort();var b=0,c=1;for(var i=1;i<days.length;i++){var df=(new Date(days[i])-new Date(days[i-1]))/(1000*60*60*24);if(df===1){c++}else{b=Math.max(b,c);c=1}}return Math.max(b,c)}
-function mcd(history){if(!history)return 0;var p=mk();return Object.keys(history).filter(function(k){return k.startsWith(p)}).length}
-function tcc(history){return history?Object.keys(history).length:0}
+function ch(h){var s=0;var d=new Date();while(true){var k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');if(h[k]){s++;d.setDate(d.getDate()-1)}else break}return s}
+function bh(h){if(!h||Object.keys(h).length===0)return 0;var ds=Object.keys(h).sort();var b=0,c=1;for(var i=1;i<ds.length;i++){var df=(new Date(ds[i])-new Date(ds[i-1]))/(864e5);if(df===1)c++;else{b=Math.max(b,c);c=1}}return Math.max(b,c)}
+function mcd(h){if(!h)return 0;var p=mk();return Object.keys(h).filter(function(k){return k.startsWith(p)}).length}
+function tcc(h){return h?Object.keys(h).length:0}
 function acd(){var m={};for(var i=0;i<st.habits.length;i++){var h=st.habits[i];if(!h.history)continue;var ks=Object.keys(h.history);for(var j=0;j<ks.length;j++){m[ks[j]]=(m[ks[j]]||0)+1}}return m}
 
-var prevPct=-1,calOpen=false,calY,calM;
+var HS=[{kw:['&#x559D;&#x6C34;','&#x6C34;','&#x996E;'],e:'&#x1F4A7;'},{kw:['&#x559D;&#x8336;','&#x8336;'],e:'&#x1F375;'},{kw:['&#x8FD0;&#x52A8;','&#x8DD1;&#x6B65;','&#x8DD1;'],e:'&#x1F3C3;'},{kw:['&#x5065;&#x8EAB;'],e:'&#x1F4AA;'},{kw:['&#x8BFB;&#x4E66;','&#x9605;&#x8BFB;','&#x770B;&#x4E66;'],e:'&#x1F4D6;'},{kw:['&#x5B66;&#x4E60;','&#x5B66;'],e:'&#x1F4DA;'},{kw:['&#x82F1;&#x8BED;','&#x5355;&#x8BCD;'],e:'&#x1F524;'},{kw:['&#x5199;&#x4F5C;','&#x5199;','&#x65E5;&#x8BB0;'],e:'&#x270D;'},{kw:['&#x73A9;&#x6E38;&#x620F;','&#x6E38;&#x620F;'],e:'&#x1F3AE;'},{kw:['&#x770B;&#x7535;&#x89C6;&#x5267;','&#x8FFD;&#x5267;','&#x5267;'],e:'&#x1F4FA;'},{kw:['&#x770B;&#x7535;&#x5F71;','&#x7535;&#x5F71;'],e:'&#x1F3AC;'},{kw:['&#x97F3;&#x4E50;','&#x542C;&#x6B4C;'],e:'&#x1F3B5;'},{kw:['&#x65E9;&#x7761;','&#x7761;'],e:'&#x1F319;'},{kw:['&#x65E9;&#x8D77;','&#x8D77;&#x5E8A;'],e:'&#x1F305;'},{kw:['&#x7F16;&#x7A0B;','code'],e:'&#x1F4BB;'},{kw:['&#x753B;&#x753B;','&#x7ED8;&#x753B;'],e:'&#x1F3A8;'},{kw:['&#x505A;&#x996D;','&#x70F9;&#x996A;'],e:'&#x1F373;'},{kw:['&#x62C9;&#x4F38;'],e:'&#x1F9B8;'},{kw:['&#x6C34;&#x679C;'],e:'&#x1F34E;'},{kw:['&#x6563;&#x6B65;','&#x8D70;&#x8D70;'],e:'&#x1F6B6;'},{kw:['&#x8BB0;&#x8D26;'],e:'&#x1F9FE;'}];
+function gs(n){var N=n.toLowerCase();for(var i=0;i<HS.length;i++){for(var j=0;j<HS[i].kw.length;j++){if(N.indexOf(HS[i].kw[j].toLowerCase())!==-1)return HS[i].e}}return'&#x2B50;'}
 
 function render(){
-var n=new Date();
-var h=n.getHours();var g='';
-if(h<6)g='\uD83C\uDF19 \u591C\u6DF1\u4E86\uFF0C\u65E9\u70B9\u4F11\u606F\uFF5E';
-else if(h<9)g='\uD83C\uDF05 \u65E9\u4E0A\u597D\uFF0C\u53C8\u662F\u65B0\u7684\u4E00\u5929\uFF01';
-else if(h<12)g='\u2600\uFE0F \u4E0A\u5348\u597D\uFF0C\u4ECA\u5929\u72B6\u6001\u600E\u4E48\u6837\uFF1F';
-else if(h<14)g='\uD83C\uDF24\uFE0F \u4E2D\u5348\u597D\uFF0C\u8BB0\u5F97\u5403\u5348\u996D\uFF5E';
-else if(h<18)g='\uD83C\uDF24\uFE0F \u4E0B\u5348\u597D\uFF0C\u7EE7\u7EED\u52A0\u6CB9\uFF01';
-else if(h<21)g='\uD83C\uDF07 \u508D\u665A\u597D\uFF0C\u4ECA\u5929\u8FC7\u5F97\u5982\u4F55\uFF1F';
-else g='\uD83C\uDF19 \u665A\u4E0A\u597D\uFF0C\u4ECA\u5929\u7684\u6253\u5361\u522B\u6F0F\u4E86\uFF5E';
+var n=new Date();var h=n.getHours();var g='';
+if(h<6)g='&#x1F319; &#x591C;&#x6DF1;&#x4E86;&#xFF0C;&#x65E9;&#x70B9;&#x4F11;&#x606F;&#xFF5E;';else if(h<9)g='&#x1F305; &#x65E9;&#x4E0A;&#x597D;&#xFF0C;&#x53C8;&#x662F;&#x65B0;&#x7684;&#x4E00;&#x5929;&#xFF01;';else if(h<12)g='&#x2600;&#xFE0F; &#x4E0A;&#x5348;&#x597D;';else if(h<14)g='&#x1F324;&#xFE0F; &#x4E2D;&#x5348;&#x597D;&#xFF0C;&#x8BB0;&#x5F97;&#x5403;&#x5348;&#x996D;&#xFF5E;';else if(h<18)g='&#x1F324;&#xFE0F; &#x4E0B;&#x5348;&#x597D;&#xFF0C;&#x7EE7;&#x7EED;&#x52A0;&#x6CB9;&#xFF01;';else if(h<21)g='&#x1F307; &#x508D;&#x665A;&#x597D;';else g='&#x1F319; &#x665A;&#x4E0A;&#x597D;&#xFF0C;&#x522B;&#x5FD8;&#x4E86;&#x6253;&#x5361;&#xFF5E;';
 document.getElementById('greetingDisplay').textContent=g;
-document.getElementById('dateDisplay').textContent=n.getFullYear()+'\u5E74'+(n.getMonth()+1)+'\u6708'+n.getDate()+'\u65E5  \u661F\u671F'+WEEKDAYS[n.getDay()];
-document.getElementById('quoteDisplay').textContent=QS[Math.floor(Math.random()*QS.length)];
-var ts=tk();var dc=0;var habits=st.habits;
+document.getElementById('dateDisplay').textContent=n.getFullYear()+'&#x5E74;'+(n.getMonth()+1)+'&#x6708;'+n.getDate()+'&#x65E5;  &#x661F;&#x671F;'+WD[n.getDay()];
+document.getElementById('quoteDisplay').textContent=getQ();
+var ts=tk(),habits=st.habits,dc=0;
 for(var i=0;i<habits.length;i++){if(habits[i].history&&habits[i].history[ts])dc++}
 var total=habits.length;
 document.getElementById('doneCount').textContent=dc;
 document.getElementById('totalCount').textContent=total;
 var pct=total>0?Math.round(dc/total*100):0;
 document.getElementById('progressFill').style.width=pct+'%';
-if(total>0&&pct===100&&prevPct!==100)confetti();
-prevPct=pct;
 var tmd=0,bsa=0,tca=0;
-for(var i=0;i<habits.length;i++){var hh=habits[i];tmd=Math.max(tmd,mcd(hh.history));bsa=Math.max(bsa,bh(hh.history));tca+=tcc(hh.history)}
-document.getElementById('monthDays').textContent=tmd;
-document.getElementById('bestStreak').textContent=bsa;
-document.getElementById('totalChecked').textContent=tca;
+for(var i=0;i<habits.length;i++){tmd=Math.max(tmd,mcd(habits[i].history));bsa=Math.max(bsa,bh(habits[i].history));tca+=tcc(habits[i].history)}
+document.getElementById('monthDays').textContent=tmd;document.getElementById('bestStreak').textContent=bsa;document.getElementById('totalChecked').textContent=tca;
 var el=document.getElementById('habitList');
-if(total===0){el.innerHTML='<div class="empty-state"><div class="icon">\u2728</div><p>\u8FD8\u6CA1\u6709\u4E60\u60EF\uFF0C\u6DFB\u52A0\u4E00\u4E2A\u5F00\u59CB\u6253\u5361\u5427</p></div>';return}
-var htm='';
-for(var i=0;i<habits.length;i++){var h=habits[i];var d=!!(h.history&&h.history[ts]);var s=ch(h.history||{});var b=bh(h.history||{});htm+='<div class="habit-card'+(d?' done':'')+'" data-id="'+h.id+'"><div class="habit-emoji">'+(h.emoji||'\u2B50')+'</div><div class="habit-info"><div class="name">'+esc(h.name)+'</div><div class="streak">'+(s>0?'\uD83D\uDD25 \u8FDE\u7EED <span class="highlight">'+s+'</span> \u5929':'\u2615 \u4ECA\u5929\u5F00\u59CB\u79EF\u7D2F')+(b>1?' \u00B7 \u6700\u9AD8 <span class="best">'+b+'</span> \u5929':'')+'</div></div><button class="check-btn'+(d?' done':'')+'" data-action="toggle"><span class="check-icon">'+(d?'\u2713':'')+'</span></button><button class="delete-btn" data-action="delete" title="\u5220\u9664">\u2715</button></div>'}
-el.innerHTML=htm;
+if(total===0){el.innerHTML='<div class="empty-state"><div class="icon">&#x2728;</div><p>&#x8FD8;&#x6CA1;&#x6709;&#x4E60;&#x60EF;&#xFF0C;&#x6DFB;&#x52A0;&#x4E00;&#x4E2A;&#x5F00;&#x59CB;&#x6253;&#x5361;&#x5427;</p></div>';return}
+var hh='';
+for(var i=0;i<habits.length;i++){var h=habits[i];var d=!!(h.history&&h.history[ts]);var s=ch(h.history||{});var b=bh(h.history||{});var en=h.emoji||'&#x2B50;';hh+='<div class="habit-card'+(d?' done':'')+'" data-id="'+h.id+'"><div class="habit-emoji">'+en+'</div><div class="habit-info"><div class="name">'+esc(h.name)+'</div><div class="streak">'+(s>0?'&#x1F525; &#x8FDE;&#x7EED; <span class="hl">'+s+'</span> &#x5929;':'&#x2615; &#x4ECA;&#x5929;&#x5F00;&#x59CB;&#x79EF;&#x7D2F;')+(b>1?' &#xB7; &#x6700;&#x9AD8; <span class="hl">'+b+'</span> &#x5929;':'')+'</div></div><button class="check-btn'+(d?' done':'')+'" data-action="toggle"><span>'+(d?'&#x2713;':'')+'</span></button></div>'}
+el.innerHTML=hh;
 if(calOpen)rc()
 }
-
 function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
-function confetti(){var cs=['#e8835a','#f0a070','#f8d080','#a8d4b8','#d4b8d8','#f0b8b8','#8ec0e0'];var c=document.createElement('div');c.className='confetti-container';for(var i=0;i<40;i++){var p=document.createElement('div');p.className='confetti-piece';p.style.left=Math.random()*100+'%';p.style.background=cs[Math.floor(Math.random()*cs.length)];p.style.width=(4+Math.random()*6)+'px';p.style.height=(4+Math.random()*6)+'px';p.style.borderRadius=Math.random()>0.5?'50%':'2px';p.style.animationDuration=(1.5+Math.random()*2)+'s';p.style.animationDelay=Math.random()*0.8+'s';c.appendChild(p)}document.body.appendChild(c);setTimeout(function(){c.remove()},4000)}
 
-function rc(){var y=calY,m=calM;document.getElementById('calMonthLabel').textContent=y+'\u5E74'+(m+1)+'\u6708';var cm=acd();var nh=st.habits.length;var fd=new Date(y,m,1).getDay();var dim=new Date(y,m+1,0).getDate();var ts=tk();var mc=0;for(var d=1;d<=dim;d++){var k=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');if(cm[k])mc++}document.getElementById('calSummary').innerHTML='\u672C\u6708\u6253\u5361 <span class="hl">'+mc+'</span> \u5929';var h='';for(var i=0;i<fd;i++)h+='<div class="cal-day other"></div>';for(var d=1;d<=dim;d++){var k=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');var ct=cm[k]||0;var it=k===ts;var cl='cal-day'+(it?' today':'');if(ct===0){h+='<div class="'+cl+'"><span class="num">'+d+'</span></div>'}else{var tp=ct>=nh?'full':'partial';h+='<div class="'+cl+'"><span class="num">'+d+'</span><span class="dot '+tp+'"></span></div>'}}document.getElementById('calGrid').innerHTML=h}
-
-function tc(){calOpen=!calOpen;var p=document.getElementById('calPanel');p.classList.toggle('open',calOpen);if(calOpen){var n=new Date();calY=n.getFullYear();calM=n.getMonth();rc()}}
+var calOpen=false,calY,calM;
+function rc(){
+var y=calY,m=calM;document.getElementById('calMonthLabel').textContent=y+'&#x5E74;'+(m+1)+'&#x6708;';var cm=acd();var nh=st.habits.length;var fd=new Date(y,m,1).getDay();var dim=new Date(y,m+1,0).getDate();var ts=tk();var mc=0;for(var d=1;d<=dim;d++){var k=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');if(cm[k])mc++}document.getElementById('calSummary').innerHTML='&#x672C;&#x6708;&#x6253;&#x5361; <span class="hl">'+mc+'</span> &#x5929;';var h='';for(var i=0;i<fd;i++)h+='<div class="cal-day other"></div>';for(var d=1;d<=dim;d++){var k=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');var ct=cm[k]||0;var it=k===ts;var cl='cal-day'+(it?' today':'');if(ct>0){h+='<div class="'+cl+'"><span class="num">'+d+'</span><span class="dot on"></span></div>'}else{h+='<div class="'+cl+'"><span class="num">'+d+'</span></div>'}}document.getElementById('calGrid').innerHTML=h}
+function tc(){calOpen=!calOpen;document.getElementById('calPanel').classList.toggle('open',calOpen);if(calOpen){var n=new Date();calY=n.getFullYear();calM=n.getMonth();rc()}}
 
 function toggle(id){var h=st.habits.find(function(x){return x.id===id});if(!h)return;var d=tk();if(!h.history)h.history={};if(h.history[d])delete h.history[d];else h.history[d]=true;sv();render()}
-
-function del(id){st.habits=st.habits.filter(function(x){return x.id!==id});sv();render();toast('\u5DF2\u5220\u9664')}
-
-function add(nm){nm=nm.trim();if(!nm)return;if(st.habits.some(function(h){return h.name===nm})){toast('\u8FD9\u4E2A\u4E60\u60EF\u5DF2\u7ECF\u6709\u4E86');return}var mx=st.habits.reduce(function(m,h){return Math.max(m,h.id)},0);st.habits.push({id:mx+1,name:nm,emoji:gs(nm),history:{}});sv();render();document.getElementById('habitInput').value='';toast('\u5DF2\u6DFB\u52A0')}
-
+function del(id){st.habits=st.habits.filter(function(x){return x.id!==id});sv();render();toast('&#x5DF2;&#x5220;&#x9664;')}
+function add(nm){nm=nm.trim();if(!nm)return;if(st.habits.some(function(h){return h.name===nm})){toast('&#x5DF2;&#x6709;&#x8FD9;&#x4E2A;&#x4E60;&#x60EF;');return}var mx=st.habits.reduce(function(m,h){return Math.max(m,h.id)},0);st.habits.push({id:mx+1,name:nm,emoji:gs(nm),history:{}});sv();render();document.getElementById('habitInput').value='';toast('&#x5DF2;&#x6DFB;&#x52A0;')}
 function toast(msg){var el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(el._timer);el._timer=setTimeout(function(){el.classList.remove('show')},1800)}
 
-function sbd(){var cs=['#e8835a','#d4b8d8','#f8d080','#a8d4b8','#f0b8b8','#8ec0e0'];for(var i=0;i<15;i++){var d=document.createElement('div');d.className='bg-dot';var sz=4+Math.random()*10;d.style.width=sz+'px';d.style.height=sz+'px';d.style.background=cs[Math.floor(Math.random()*cs.length)];d.style.left=Math.random()*95+'%';d.style.top=Math.random()*95+'%';d.style.animation='floatA '+(6+Math.random()*8)+'s ease-in-out infinite';d.style.animationDelay=Math.random()*5+'s';document.body.appendChild(d)}var ss=['\u2726','\u2727','\u00B7','\u02D9'];for(var i=0;i<8;i++){var e=document.createElement('div');e.className='bg-star';e.textContent=ss[i%ss.length];e.style.left=Math.random()*93+'%';e.style.top=Math.random()*93+'%';e.style.fontSize=(12+Math.random()*14)+'px';e.style.color=cs[i%cs.length];e.style.animation='floatB '+(7+Math.random()*6)+'s ease-in-out infinite';e.style.animationDelay=Math.random()*4+'s';document.body.appendChild(e)}}
-
-/* Music player */
-var pl=['background.mp3','rain.mp3'];
-var ct=0,mp=false,sk=false;
-var ae=document.getElementById('bgAudio');
-ae.volume=0.3;
-var mpop=document.getElementById('mpOpen');
-var mpb=document.getElementById('mp');
-var mpp=document.getElementById('mpPlay');
-var mppr=document.getElementById('mpProgress');
-var mpt=document.getElementById('mpTime');
-var mpl=document.getElementById('mpLabel');
-
-function pt(idx){
-if(idx<0)idx=pl.length-1;
-if(idx>=pl.length)idx=0;
-if(idx===ct&&mp)return;
-ct=idx;mpl.textContent=(ct+1)+'/'+pl.length;
-ae.src=pl[ct];ae.load();if(mp)ae.play()
-}
-
-function up(){
-mpt.textContent='0:00 / 0:00';mppr.value=0;mppr.max=100
-}
-
-ae.addEventListener('loadedmetadata',function(){
-var d=ae.duration;if(isNaN(d)||!isFinite(d))return;
-mppr.max=Math.floor(d*10);
-mpt.textContent='0:00 / '+Math.floor(d/60)+':'+String(Math.floor(d%60)).padStart(2,'0')
-});
-
-ae.addEventListener('timeupdate',function(){
-var d=ae.duration;if(isNaN(d)||!isFinite(d))return;
-var ct2=ae.currentTime;
-mppr.value=Math.floor(ct2*10);
-mpt.textContent=Math.floor(ct2/60)+':'+String(Math.floor(ct2%60)).padStart(2,'0')+' / '+Math.floor(d/60)+':'+String(Math.floor(d%60)).padStart(2,'0')
-});
-
-mppr.addEventListener('input',function(){
-var d=ae.duration;if(isNaN(d)||!isFinite(d))return;
-ae.currentTime=mppr.value/10
-});
-
-function togglePlay(){
-if(mp){ae.pause();mp=false;sk=false;mpp.textContent='\u25B6';mpop.classList.remove('playing')}
-else{ae.play().then(function(){mp=true;sk=false;mpp.textContent='\u23F8';mpop.classList.add('playing');pt(ct)}).catch(function(){toast('\u70B9\u51FB\u7FFB\u8F6C\u7136\u540E\u518D\u70B9\u64AD\u653E')}}
-}
-
-mpop.addEventListener('click',function(){if(!mp&&!sk){sk=true;mpb.classList.add('show');pt(0);ae.play().then(function(){mp=true;mpp.textContent='\u23F8';mpop.classList.add('playing')}).catch(function(){})}else{togglePlay()}});
-
-document.getElementById('mpPrev').addEventListener('click',function(e){e.stopPropagation();pt(ct-1);if(!mp){ae.play().then(function(){mp=true;mpp.textContent='\u23F8';mpop.classList.add('playing')}).catch(function(){})}});
-document.getElementById('mpNext').addEventListener('click',function(e){e.stopPropagation();pt(ct+1);if(!mp){ae.play().then(function(){mp=true;mpp.textContent='\u23F8';mpop.classList.add('playing')}).catch(function(){})}});
+var mp=false;var ae=document.getElementById('bgAudio');ae.volume=0.3;var mb=document.getElementById('musicBtn');
+mb.addEventListener('click',function(){if(mp){ae.pause();mp=false;mb.classList.remove('playing')}else{ae.play().then(function(){mp=true;mb.classList.add('playing')}).catch(function(){toast('&#x70B9;&#x51FB;&#x9875;&#x9762;&#x540E;&#x518D;&#x70B9;&#x64AD;&#x653E;')})}});
 
 document.getElementById('calToggleBtn').addEventListener('click',tc);
 document.getElementById('calPrev').addEventListener('click',function(){calM--;if(calM<0){calM=11;calY--}rc()});
 document.getElementById('calNext').addEventListener('click',function(){var n=new Date();if(calY===n.getFullYear()&&calM===n.getMonth())return;calM++;if(calM>11){calM=0;calY++}rc()});
-document.getElementById('habitList').addEventListener('click',function(e){var db=e.target.closest('[data-action="delete"]');if(db){var c=db.closest('.habit-card');if(c)del(Number(c.dataset.id));return}var c=e.target.closest('.habit-card');if(c)toggle(Number(c.dataset.id))});
-document.getElementById('addBtn').addEventListener('click',function(){add(document.getElementById('habitInput').value);document.getElementById('habitInput').focus()});
-document.getElementById('habitInput').addEventListener('keydown',function(e){if(e.key==='Enter'){add(e.target.value);e.target.focus()}});
+document.getElementById('habitList').addEventListener('click',function(e){var db=e.target.closest('[data-action="toggle"]');if(db){var c=db.closest('.habit-card');if(c)toggle(Number(c.dataset.id));return}var c=e.target.closest('.habit-card');if(c)toggle(Number(c.dataset.id))});
+document.getElementById('addBtn').addEventListener('click',function(){add(document.getElementById('habitInput').value)});
+document.getElementById('habitInput').addEventListener('keydown',function(e){if(e.key==='Enter'){add(e.target.value);e.target.value=''}});
 
-up();sbd();render();
+render();
 })();
 </script>
 </body>
