@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>每日打卡</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+    background: linear-gradient(145deg, #fdf6ee 0%, #f5ebe0 100%);
+    min-height: 100vh;
+    color: #3d2c2c;
+    line-height: 1.5;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* ── Background Decorations ── */
+  .bg-deco {
+    position: fixed;
+    pointer-events: none;
+    z-index: 0;
+    border-radius: 50%;
+    opacity: 0.10;
+  }
+  .bg-deco-1 {
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, #f0c0a0, transparent 70%);
+    top: -40px; right: -60px;
+    animation: floatA 8s ease-in-out infinite;
+  }
+  .bg-deco-2 {
+    width: 140px; height: 140px;
+    background: radial-gradient(circle, #d4b8d8, transparent 70%);
+    bottom: 10%; left: -40px;
+    animation: floatB 10s ease-in-out infinite;
+  }
+  .bg-deco-3 {
+    width: 100px; height: 100px;
+    background: radial-gradient(circle, #f8d080, transparent 70%);
+    top: 40%; right: -20px;
+    animation: floatA 12s ease-in-out infinite;
+  }
+  .bg-deco-4 {
+    width: 80px; height: 80px;
+    background: radial-gradient(circle, #a8d4b8, transparent 70%);
+    top: 15%; left: 10%;
+    animation: floatB 9s ease-in-out infinite;
+  }
+  .bg-deco-5 {
+    width: 60px; height: 60px;
+    background: radial-gradient(circle, #f0b8b8, transparent 70%);
+    bottom: 30%; right: 15%;
+    animation: floatA 7s ease-in-out infinite;
+  }
+
+  @keyframes floatA {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(15px, -20px); }
+  }
+  @keyframes floatB {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(-12px, 18px); }
+  }
+
+  /* ── Tiny floating shapes ── */
+  .bg-dot {
+    position: fixed;
+    pointer-events: none;
+    z-index: 0;
+    border-radius: 50%;
+    opacity: 0.12;
+  }
+  .bg-star {
+    position: fixed;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.10;
+    font-size: 18px;
+  }
+
+  .container {
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 32px 20px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── Header ── */
+  .header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .header .greeting {
+    font-size: 14px;
+    color: #b29595;
+    margin-bottom: 2px;
+  }
+  .header h1 {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: #4a3636;
+  }
+  .header .date {
+    font-size: 14px;
+    color: #9a7a7a;
+    margin-top: 2px;
+  }
+  .header .summary {
+    margin-top: 16px;
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+  }
+  .header .summary-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .header .summary-item .num {
+    font-size: 26px;
+    font-weight: 700;
+    color: #e8835a;
+  }
+  .header .summary-item .label {
+    font-size: 12px;
+    color: #b29595;
+    margin-top: 1px;
+  }
+
+  /* ── Progress ── */
+  .progress-wrap {
+    background: #fff;
+    border-radius: 14px;
+    padding: 6px 0;
+    margin-bottom: 18px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+  }
+  .bar-track {
+    width: 100%;
+    height: 8px;
+    background: #f0e8e0;
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+  }
+  .bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #e8835a, #f0a070);
+    border-radius: 6px;
+    transition: width 0.5s ease;
+    width: 0%;
+    position: relative;
+  }
+
+  /* ── Card ── */
+  .habit-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: box-shadow 0.2s, transform 0.15s, opacity 0.3s;
+    cursor: pointer;
+    position: relative;
+  }
+  .habit-card:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+  }
+  .habit-card:active {
+    transform: scale(0.98);
+  }
+  .habit-card.done {
+    opacity: 0.55;
+  }
+
+  .habit-emoji {
+    font-size: 34px;
+    line-height: 1;
+    width: 46px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .habit-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .habit-info .name {
+    font-size: 17px;
+    font-weight: 600;
+    color: #3d2c2c;
+    transition: color 0.2s;
+  }
+  .habit-card.done .habit-info .name {
+    color: #b29595;
+    text-decoration: line-through;
+  }
+  .habit-info .streak {
+    font-size: 13px;
+    color: #b29595;
+    margin-top: 2px;
+  }
+  .habit-info .streak .highlight {
+    font-weight: 700;
+    color: #e8835a;
+  }
+  .habit-info .streak .best {
+    color: #d4a030;
+    font-weight: 600;
+  }
+
+  /* ── Check Button ── */
+  .check-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 2.5px solid #e8ddd0;
+    background: #fcf9f6;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s;
+    font-size: 22px;
+    color: transparent;
+    padding: 0;
+    position: relative;
+    z-index: 2;
+  }
+  .check-btn:active {
+    transform: scale(0.88);
+  }
+  .check-btn.done {
+    border-color: #e8835a;
+    background: #e8835a;
+    color: #fff;
+    box-shadow: 0 3px 12px rgba(232,131,90,0.3);
+  }
+  .check-btn .check-icon {
+    transition: transform 0.3s ease;
+  }
+  .check-btn.done .check-icon {
+    transform: scale(1);
+  }
+
+  /* ── Delete ── */
+  .delete-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    color: #d4bcbc;
+    transition: all 0.2s;
+    opacity: 0;
+    padding: 0;
+    position: relative;
+    z-index: 2;
+  }
+  .habit-card:hover .delete-btn {
+    opacity: 1;
+  }
+  .delete-btn:hover {
+    background: #f5ecec;
+    color: #c48787;
+  }
+
+  /* ── Monthly Stats ── */
+  .month-stats {
+    background: #fff;
+    border-radius: 14px;
+    padding: 16px 20px;
+    margin-top: 18px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+    display: flex;
+    justify-content: center;
+    gap: 36px;
+  }
+  .month-stats .stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .month-stats .stat-item .num {
+    font-size: 20px;
+    font-weight: 700;
+    color: #e8835a;
+  }
+  .month-stats .stat-item .label {
+    font-size: 12px;
+    color: #b29595;
+    margin-top: 1px;
+  }
+
+  /* ── Quote ── */
+  .quote {
+    text-align: center;
+    margin: 24px 0 16px;
+    font-size: 14px;
+    color: #b29595;
+    font-style: italic;
+    line-height: 1.6;
+    padding: 0 10px;
+    transition: opacity 0.4s;
+  }
+  .quote .q-emoji {
+    font-style: normal;
+  }
+
+  /* ── Add ── */
+  .add-area {
+    margin-top: 16px;
+    display: flex;
+    gap: 10px;
+  }
+  .add-area input {
+    flex: 1;
+    border: 2px solid #e8ddd0;
+    border-radius: 14px;
+    padding: 12px 16px;
+    font-size: 15px;
+    outline: none;
+    background: #fff;
+    color: #3d2c2c;
+    transition: border-color 0.2s;
+  }
+  .add-area input::placeholder { color: #cbb5b5; }
+  .add-area input:focus { border-color: #e8835a; }
+  .add-area button {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    border: none;
+    background: #e8835a;
+    color: #fff;
+    font-size: 26px;
+    font-weight: 300;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s, transform 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+  .add-area button:hover { background: #d9744e; }
+  .add-area button:active { transform: scale(0.95); }
+
+  /* ── Empty ── */
+  .empty-state {
+    text-align: center;
+    padding: 50px 20px;
+    color: #b29595;
+  }
+  .empty-state .icon { font-size: 52px; margin-bottom: 12px; }
+  .empty-state p { font-size: 15px; }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: #3d2c2c;
+    color: #fdf6ee;
+    padding: 10px 22px;
+    border-radius: 12px;
+    font-size: 14px;
+    opacity: 0;
+    transition: all 0.35s ease;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 10;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ── Confetti ── */
+  .confetti-container {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 100;
+    overflow: hidden;
+  }
+  .confetti-piece {
+    position: absolute;
+    width: 8px; height: 8px;
+    border-radius: 2px;
+    animation: confettiFall linear forwards;
+  }
+  @keyframes confettiFall {
+    0% { opacity: 1; transform: translateY(-10px) rotate(0deg); }
+    100% { opacity: 0; transform: translateY(100vh) rotate(720deg); }
+  }
+
+  @media (max-width: 420px) {
+    .container { padding: 24px 16px 80px; }
+    .header h1 { font-size: 22px; }
+    .habit-card { padding: 14px 16px; }
+    .check-btn { width: 44px; height: 44px; font-size: 20px; }
+    .habit-emoji { font-size: 30px; width: 40px; }
+    .habit-info .name { font-size: 15px; }
+    .delete-btn { opacity: 1; }
+    .month-stats { gap: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Background decorations -->
+<div class="bg-deco bg-deco-1"></div>
+<div class="bg-deco bg-deco-2"></div>
+<div class="bg-deco bg-deco-3"></div>
+<div class="bg-deco bg-deco-4"></div>
+<div class="bg-deco bg-deco-5"></div>
+
+<div class="container">
+
+  <div class="header">
+    <div class="greeting" id="greetingDisplay"></div>
+    <h1>📋 每日打卡</h1>
+    <div class="date" id="dateDisplay"></div>
+    <div class="summary">
+      <div class="summary-item">
+        <span class="num" id="doneCount">0</span>
+        <span class="label">已完成</span>
+      </div>
+      <div class="summary-item">
+        <span class="num" id="totalCount">0</span>
+        <span class="label">总习惯</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="bar-track"><div class="bar-fill" id="progressFill"></div></div>
+  </div>
+
+  <div id="habitList"></div>
+
+  <div class="month-stats" id="monthStats">
+    <div class="stat-item">
+      <span class="num" id="monthDays">0</span>
+      <span class="label">本月打卡</span>
+    </div>
+    <div class="stat-item">
+      <span class="num" id="bestStreak">0</span>
+      <span class="label">最长连续</span>
+    </div>
+    <div class="stat-item">
+      <span class="num" id="totalChecked">0</span>
+      <span class="label">累计完成</span>
+    </div>
+  </div>
+
+  <div class="quote" id="quoteDisplay"></div>
+
+  <div class="add-area">
+    <input id="habitInput" type="text" placeholder="添加新习惯…" maxlength="20" autocomplete="off">
+    <button id="addBtn" title="添加">+</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  const STORAGE_KEY = 'daily_habits_data';
+
+  function todayKey() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+  function monthKey() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+  }
+
+  /* ── State ── */
+  function loadState() {
+    try { const r = localStorage.getItem(STORAGE_KEY); if (r) return JSON.parse(r); } catch (_) {}
+    return { habits: [] };
+  }
+  function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  let state = loadState();
+
+  /* ── Greeting ── */
+  function getGreeting() {
+    const h = new Date().getHours();
+    if (h < 6) return '🌙 夜深了，早点休息～';
+    if (h < 9) return '🌅 早上好，又是新的一天！';
+    if (h < 12) return '☀️ 上午好，今天状态怎么样？';
+    if (h < 14) return '🌤️ 中午好，记得吃午饭～';
+    if (h < 18) return '🌤️ 下午好，继续加油！';
+    if (h < 21) return '🌇 傍晚好，今天过得如何？';
+    return '🌙 晚上好，今天的打卡别漏了～';
+  }
+
+  /* ── Quotes ── */
+  const QUOTES = [
+    '坚持不是一次轰轰烈烈的行动，而是每天重复的小事 🐢',
+    '今天的你，比昨天多了一点点 ✨',
+    '习惯是一种复利，每天进步 1% 💪',
+    '不要等待完美的时机，就从今天开始 🌱',
+    '小小坚持，大大改变 🌟',
+    '每一步都算数 🚶',
+    '自律即自由 🕊️',
+    '今天的努力是明天的礼物 🎁',
+    '做难事必有所得 🎯',
+    '水滴石穿，不是力量大，而是功夫深 💧',
+  ];
+  function getDailyQuote() {
+    const d = todayKey();
+    let idx = 0;
+    for (let i = 0; i < d.length; i++) idx = (idx * 31 + d.charCodeAt(i)) % QUOTES.length;
+    return QUOTES[idx];
+  }
+
+  /* ── Streak ── */
+  function calcStreak(history) {
+    let streak = 0;
+    const d = new Date();
+    while (true) {
+      const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+      if (history[key]) { streak++; d.setDate(d.getDate() - 1); }
+      else break;
+    }
+    return streak;
+  }
+
+  function calcBestStreak(history) {
+    if (!history || Object.keys(history).length === 0) return 0;
+    const days = Object.keys(history).sort();
+    let best = 0, cur = 1;
+    for (let i = 1; i < days.length; i++) {
+      const prev = new Date(days[i-1]);
+      const curr = new Date(days[i]);
+      const diff = (curr - prev) / (1000 * 60 * 60 * 24);
+      if (diff === 1) { cur++; }
+      else { best = Math.max(best, cur); cur = 1; }
+    }
+    return Math.max(best, cur);
+  }
+
+  function monthCheckDays(history) {
+    if (!history) return 0;
+    const prefix = monthKey();
+    return Object.keys(history).filter(k => k.startsWith(prefix)).length;
+  }
+
+  function totalCheckCount(history) {
+    return history ? Object.keys(history).length : 0;
+  }
+
+  /* ── Emoji Mapping ── */
+  const HABIT_STYLES = [
+    { kw: ['喝水','水','饮','water'],           emoji: '💧' },
+    { kw: ['喝茶','茶','tea'],                   emoji: '🍵' },
+    { kw: ['咖啡','coffee'],                     emoji: '☕' },
+    { kw: ['运动','跑步','跑','run'],            emoji: '🏃' },
+    { kw: ['健身','gym','workout'],              emoji: '💪' },
+    { kw: ['瑜伽','yoga'],                       emoji: '🧘' },
+    { kw: ['散步','walk','走走'],                emoji: '🚶' },
+    { kw: ['读书','阅读','看书','book','read'],  emoji: '📖' },
+    { kw: ['学习','学','study','复习'],          emoji: '📚' },
+    { kw: ['英语','背单词','单词','english'],    emoji: '🔤' },
+    { kw: ['写作','写','日记','write','journal'], emoji: '✍️' },
+    { kw: ['玩游戏','游戏','打游戏','game'],     emoji: '🎮' },
+    { kw: ['看电视剧','追剧','电视剧','看剧','剧'], emoji: '📺' },
+    { kw: ['看电影','电影','movie'],             emoji: '🎬' },
+    { kw: ['听音乐','音乐','music','听歌'],      emoji: '🎵' },
+    { kw: ['播客','podcast'],                    emoji: '🎧' },
+    { kw: ['冥想','meditation'],                 emoji: '🧘' },
+    { kw: ['早起','起床'],                       emoji: '🌅' },
+    { kw: ['早睡','sleep','睡觉','睡'],          emoji: '🌙' },
+    { kw: ['编程','code','coding','写代码'],     emoji: '💻' },
+    { kw: ['画画','绘画','画','draw','art'],     emoji: '🎨' },
+    { kw: ['摄影','拍照','photo'],               emoji: '📷' },
+    { kw: ['做饭','烹饪','cook','cooking'],      emoji: '🍳' },
+    { kw: ['水果','fruit','苹果','apple'],       emoji: '🍎' },
+    { kw: ['拉伸','stretch','拉筋'],             emoji: '🤸' },
+    { kw: ['遛狗','狗','dog'],                   emoji: '🐕' },
+    { kw: ['整理','收纳','clean','tidy'],        emoji: '🧹' },
+    { kw: ['护肤','skin','skincare'],             emoji: '🧴' },
+    { kw: ['记账','budget','finance'],            emoji: '🧾' },
+    { kw: ['练字','书法','calligraphy'],          emoji: '🖋️' },
+  ];
+
+  function guessStyle(name) {
+    const n = name.toLowerCase();
+    for (const s of HABIT_STYLES) {
+      for (const kw of s.kw) {
+        if (n.includes(kw.toLowerCase())) return s.emoji;
+      }
+    }
+    return '⭐';
+  }
+
+  /* ── Render ── */
+  const WEEKDAYS = ['日','一','二','三','四','五','六'];
+
+  function escHtml(s) {
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  let prevPct = -1;
+
+  function render() {
+    const now = new Date();
+    document.getElementById('greetingDisplay').textContent = getGreeting();
+    document.getElementById('dateDisplay').textContent =
+      now.getFullYear() + '年' + (now.getMonth()+1) + '月' + now.getDate() + '日  星期' + WEEKDAYS[now.getDay()];
+    document.getElementById('quoteDisplay').textContent = getDailyQuote();
+
+    const todayStr = todayKey();
+    let doneCount = 0;
+    const habits = state.habits;
+
+    for (const h of habits) {
+      if (h.history && h.history[todayStr]) doneCount++;
+    }
+    const total = habits.length;
+
+    document.getElementById('doneCount').textContent = doneCount;
+    document.getElementById('totalCount').textContent = total;
+    const pct = total > 0 ? Math.round(doneCount / total * 100) : 0;
+    document.getElementById('progressFill').style.width = pct + '%';
+
+    /* Celebration on 100% */
+    if (total > 0 && pct === 100 && prevPct !== 100) {
+      launchConfetti();
+    }
+    prevPct = pct;
+
+    /* ── Monthly stats ── */
+    let totalMonthDays = 0, bestStreakAll = 0, totalCheckAll = 0;
+    for (const h of habits) {
+      totalMonthDays = Math.max(totalMonthDays, monthCheckDays(h.history));
+      bestStreakAll = Math.max(bestStreakAll, calcBestStreak(h.history));
+      totalCheckAll += totalCheckCount(h.history);
+    }
+    document.getElementById('monthDays').textContent = totalMonthDays;
+    document.getElementById('bestStreak').textContent = bestStreakAll;
+    document.getElementById('totalChecked').textContent = totalCheckAll;
+
+    /* ── Habit list ── */
+    const listEl = document.getElementById('habitList');
+
+    if (total === 0) {
+      listEl.innerHTML = '<div class="empty-state"><div class="icon">✨</div><p>还没有习惯，添加一个开始打卡吧</p></div>';
+      return;
+    }
+
+    listEl.innerHTML = habits.map(h => {
+      const done = !!(h.history && h.history[todayStr]);
+      const streak = calcStreak(h.history || {});
+      const best = calcBestStreak(h.history || {});
+      const monthD = monthCheckDays(h.history);
+      return '<div class="habit-card' + (done ? ' done' : '') + '" data-id="' + h.id + '">'
+        + '<div class="habit-emoji">' + (h.emoji || '⭐') + '</div>'
+        + '<div class="habit-info">'
+        +   '<div class="name">' + escHtml(h.name) + '</div>'
+        +   '<div class="streak">'
+        +     (streak > 0
+          ? '🔥 连续 <span class="highlight">' + streak + '</span> 天'
+          : '☕ 今天开始积累')
+        +     (best > 1 ? ' · 最高 <span class="best">' + best + '</span> 天' : '')
+        +   '</div>'
+        + '</div>'
+        + '<button class="check-btn' + (done ? ' done' : '') + '" data-action="toggle">'
+        +   '<span class="check-icon">' + (done ? '✓' : '') + '</span>'
+        + '</button>'
+        + '<button class="delete-btn" data-action="delete" title="删除">✕</button>'
+        + '</div>';
+    }).join('');
+  }
+
+  /* ── Confetti ── */
+  function launchConfetti() {
+    const colors = ['#e8835a','#f0a070','#f8d080','#a8d4b8','#d4b8d8','#f0b8b8','#8ec0e0'];
+    const container = document.createElement('div');
+    container.className = 'confetti-container';
+    for (let i = 0; i < 40; i++) {
+      const piece = document.createElement('div');
+      piece.className = 'confetti-piece';
+      piece.style.left = Math.random() * 100 + '%';
+      piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+      piece.style.width = (4 + Math.random() * 6) + 'px';
+      piece.style.height = (4 + Math.random() * 6) + 'px';
+      piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+      piece.style.animationDuration = (1.5 + Math.random() * 2) + 's';
+      piece.style.animationDelay = Math.random() * 0.8 + 's';
+      container.appendChild(piece);
+    }
+    document.body.appendChild(container);
+    setTimeout(() => container.remove(), 4000);
+  }
+
+  /* ── Actions ── */
+  function toggleHabit(id) {
+    const h = state.habits.find(x => x.id === id);
+    if (!h) return;
+    const d = todayKey();
+    if (!h.history) h.history = {};
+    if (h.history[d]) { delete h.history[d]; }
+    else { h.history[d] = true; }
+    saveState();
+    render();
+  }
+
+  function deleteHabit(id) {
+    state.habits = state.habits.filter(x => x.id !== id);
+    saveState();
+    render();
+    showToast('已删除 ✕');
+  }
+
+  function addHabit(name) {
+    name = name.trim();
+    if (!name) return;
+    if (state.habits.some(h => h.name === name)) {
+      showToast('这个习惯已经有了');
+      return;
+    }
+    const maxId = state.habits.reduce((m, h) => Math.max(m, h.id), 0);
+    state.habits.push({
+      id: maxId + 1,
+      name: name,
+      emoji: guessStyle(name),
+      history: {},
+    });
+    saveState();
+    render();
+    document.getElementById('habitInput').value = '';
+    showToast('已添加 ✓');
+  }
+
+  function showToast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(el._timer);
+    el._timer = setTimeout(() => el.classList.remove('show'), 1800);
+  }
+
+  /* ── Background dots ── */
+  function spawnBgDots() {
+    const colors = ['#e8835a','#d4b8d8','#f8d080','#a8d4b8','#f0b8b8','#8ec0e0'];
+    for (let i = 0; i < 15; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'bg-dot';
+      const size = 4 + Math.random() * 10;
+      dot.style.width = size + 'px';
+      dot.style.height = size + 'px';
+      dot.style.background = colors[Math.floor(Math.random() * colors.length)];
+      dot.style.left = Math.random() * 95 + '%';
+      dot.style.top = Math.random() * 95 + '%';
+      dot.style.animation = 'floatA ' + (6 + Math.random() * 8) + 's ease-in-out infinite';
+      dot.style.animationDelay = Math.random() * 5 + 's';
+      document.body.appendChild(dot);
+    }
+    const stars = ['✦','✧','·','˙'];
+    for (let i = 0; i < 8; i++) {
+      const el = document.createElement('div');
+      el.className = 'bg-star';
+      el.textContent = stars[i % stars.length];
+      el.style.left = Math.random() * 93 + '%';
+      el.style.top = Math.random() * 93 + '%';
+      el.style.fontSize = (12 + Math.random() * 14) + 'px';
+      el.style.color = ['#e8835a','#d4b8d8','#f0a070','#a8d4b8'][i % 4];
+      el.style.animation = 'floatB ' + (7 + Math.random() * 6) + 's ease-in-out infinite';
+      el.style.animationDelay = Math.random() * 4 + 's';
+      document.body.appendChild(el);
+    }
+  }
+
+  /* ── Events ── */
+  document.getElementById('habitList').addEventListener('click', function(e) {
+    /* If clicking delete button directly */
+    const deleteBtn = e.target.closest('[data-action="delete"]');
+    if (deleteBtn) {
+      const card = deleteBtn.closest('.habit-card');
+      if (card) deleteHabit(Number(card.dataset.id));
+      return;
+    }
+    /* Otherwise toggle the habit (click anywhere on card) */
+    const card = e.target.closest('.habit-card');
+    if (card) toggleHabit(Number(card.dataset.id));
+  });
+
+  document.getElementById('addBtn').addEventListener('click', function() {
+    const input = document.getElementById('habitInput');
+    addHabit(input.value);
+    input.focus();
+  });
+  document.getElementById('habitInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      addHabit(e.target.value);
+      e.target.focus();
+    }
+  });
+
+  spawnBgDots();
+  render();
+})();
+</script>
+</body>
+</html>
