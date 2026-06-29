@@ -304,16 +304,24 @@
     '习惯是一种复利，每天进步 1% 💪',
     '不要等待完美的时机，就从今天开始 🌱',
     '小小坚持，大大改变 🌟',
-    '每一步都算数 🚶',
+    '不积跬步，无以至千里 🚶',
     '自律即自由 🕊️',
     '今天的努力是明天的礼物 🎁',
     '做难事必有所得 🎯',
     '水滴石穿，不是力量大，而是功夫深 💧',
+    '你是最棒的！今天也在努力呢 🌟',
+    '坚持本身就是一种天赋 💫',
+    '每一个不曾起舞的日子，都是对生命的辜负 🩰',
+    '路虽远，行则将至；事虽难，做则必成 🏔️',
+    '表扬你的坚持，每一天都值得骄傲 🏅',
+    '星光不问赶路人，时光不负有心人 🌠',
+    '慢慢来，比较快 🐌',
+    '你比你想象的更强大 💥',
+    '今天也辛苦了，你做得很好 🌸',
+    '伟大源于微小，千里来自足下 🏆',
   ];
-  function getDailyQuote() {
-    const d = todayKey(); let idx = 0;
-    for (let i = 0; i < d.length; i++) idx = (idx * 31 + d.charCodeAt(i)) % QUOTES.length;
-    return QUOTES[idx];
+  function getRandomQuote() {
+    return QUOTES[Math.floor(Math.random() * QUOTES.length)];
   }
 
   /* ── Streak ── */
@@ -406,7 +414,7 @@
     const now = new Date();
     document.getElementById('greetingDisplay').textContent = getGreeting();
     document.getElementById('dateDisplay').textContent = now.getFullYear() + '年' + (now.getMonth()+1) + '月' + now.getDate() + '日  星期' + WEEKDAYS[now.getDay()];
-    document.getElementById('quoteDisplay').textContent = getDailyQuote();
+    document.getElementById('quoteDisplay').textContent = getRandomQuote();
 
     const todayStr = todayKey();
     let doneCount = 0; const habits = state.habits;
@@ -611,9 +619,65 @@
     if (e.key === 'Enter') { addHabit(e.target.value); e.target.focus(); }
   });
 
+  /* ── Music ── */
+  let musicPlaying = false;
+  const audioEl = document.getElementById('bgAudio');
+  const musicBtn = document.getElementById('musicBtn');
+  audioEl.volume = 0.3;
+
+  musicBtn.addEventListener('click', function() {
+    if (musicPlaying) {
+      audioEl.pause();
+      musicPlaying = false;
+      musicBtn.classList.remove('playing');
+    } else {
+      audioEl.play().then(function() {
+        musicPlaying = true;
+        musicBtn.classList.add('playing');
+      }).catch(function(e) {
+        showToast('点击页面任意位置后再试');
+      });
+    }
+  });
+
+  /* First click on page to enable audio context */
+  document.addEventListener('click', function() {
+    if (!musicPlaying && audioEl.paused) {
+      /* Just prime the audio context, don't auto-play */
+    }
+  }, { once: true });
+
   spawnBgDots();
   render();
 })();
 </script>
 </body>
 </html>
+  .music-btn {
+    position: fixed; bottom: 24px; right: 24px; z-index: 20;
+    width: 48px; height: 48px; border-radius: 50%; border: none;
+    background: #fff; box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 20px; transition: all 0.25s; padding: 0;
+    color: #b29595;
+  }
+  .music-btn:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+  .music-btn.playing { color: #e8835a; box-shadow: 0 3px 14px rgba(232,131,90,0.2); }
+  .music-btn:active { transform: scale(0.92); }
+
+  @keyframes rotatePulse { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  .music-btn.playing svg { animation: rotatePulse 4s linear infinite; }
+
+  @media (max-width: 420px) { .music-btn { width: 44px; height: 44px; font-size: 18px; bottom: 16px; right: 16px; } }
+</div>
+
+<button class="music-btn" id="musicBtn" title="背景音乐">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22">
+    <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+  </svg>
+</button>
+
+<audio id="bgAudio" loop preload="auto">
+  <source src="background.mp3" type="audio/mpeg">
+</audio>
+</div>
