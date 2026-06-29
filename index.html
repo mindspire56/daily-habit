@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>姣忔棩鎵撳崱</title>
+<title>&#x6BCF;&#x65E5;&#x6253;&#x5361;</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -159,7 +159,11 @@
   .music-btn.playing { color:#e8835a; box-shadow:0 3px 14px rgba(232,131,90,0.2); }
   .music-btn:active { transform:scale(0.92); }
   @keyframes rotatePulse { 0% { transform:rotate(0deg); } 100% { transform:rotate(360deg); } }
-  .music-btn.playing svg { animation:rotatePulse 4s linear infinite; }
+  .music-bar { position:fixed; bottom:24px; right:24px; z-index:20; display:flex; align-items:center; gap:4px; background:#fff; border-radius:30px; padding:4px 10px 4px 6px; box-shadow:0 2px 12px rgba(0,0,0,0.08); }
+.music-nav { width:30px; height:30px; border:none; border-radius:50%; background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#b29595; transition:all .2s; flex-shrink:0; }
+.music-nav:hover { background:#f5f0ea; color:#e8835a; }
+.music-nav svg { width:16px; height:16px; }
+.music-label { font-size:12px; color:#b29595; max-width:100px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; line-height:1; }
 
   .confetti-container { position:fixed; top:0; left:0; right:0; bottom:0; pointer-events:none; z-index:100; overflow:hidden; }
   .confetti-piece { position:absolute; width:8px; height:8px; border-radius:2px; animation:confettiFall linear forwards; }
@@ -242,11 +246,20 @@
   </div>
 </div>
 
-<button class="music-btn" id="musicBtn" title="&#x80CC;&#x666F;&#x97F3;&#x4E50;">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22">
-    <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
-  </svg>
-</button>
+<div class="music-bar" id="musicBar">
+  <button class="music-nav" id="musicPrev" title="&#x4E0A;&#x4E00;&#x9996;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+  </button>
+  <button class="music-btn" id="musicBtn" title="&#x64AD;&#x653E;/&#x6682;&#x505C;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22">
+      <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+    </svg>
+  </button>
+  <button class="music-nav" id="musicNext" title="&#x4E0B;&#x4E00;&#x9996;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+  </button>
+  <span class="music-label" id="musicLabel"></span>
+</div>
 
 <audio id="bgAudio" loop preload="auto">
   <source src="background.mp3" type="audio/mpeg">
@@ -585,10 +598,31 @@
   }
 
   /* Music */
+    var playlist = [
+    { file: 'background.mp3' },
+    { file: 'rain.mp3' },
+  ];
+  var currentTrack = 0;
   var musicPlaying = false;
   var audioEl = document.getElementById('bgAudio');
   var musicBtn = document.getElementById('musicBtn');
   audioEl.volume = 0.3;
+
+  function playTrack(idx) {
+    if (idx < 0) idx = playlist.length - 1;
+    if (idx >= playlist.length) idx = 0;
+    if (idx === currentTrack && musicPlaying) return;
+    currentTrack = idx;
+    audioEl.src = playlist[idx].file;
+    audioEl.load();
+    if (musicPlaying) audioEl.play();
+    updateMusicLabel();
+  }
+
+  function updateMusicLabel() {
+    var label = '' + (currentTrack+1) + '/' + playlist.length;
+    document.getElementById('musicLabel').textContent = label;
+  }
 
   musicBtn.addEventListener('click', function() {
     if (musicPlaying) {
@@ -602,6 +636,22 @@
       }).catch(function(e) {
         showToast('\u70B9\u51FB\u9875\u9762\u540E\u518D\u70B9\u64AD\u653E\u97F3\u4E50');
       });
+    }
+  });
+
+  document.getElementById('musicPrev').addEventListener('click', function(e) {
+    e.stopPropagation();
+    playTrack(currentTrack - 1);
+    if (!musicPlaying) { musicPlaying = true; musicBtn.click(); }
+  });
+
+  document.getElementById('musicNext').addEventListener('click', function(e) {
+    e.stopPropagation();
+    playTrack(currentTrack + 1);
+    if (!musicPlaying) { musicPlaying = true; musicBtn.click(); }
+  });
+
+  updateMusicLabel();
     }
   });
 
